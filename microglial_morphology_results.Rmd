@@ -1,0 +1,239 @@
+---
+title: "Results"
+author: "Holloway, O., Bindoff, A., Ziebell, J."
+output: html_document
+---
+
+`r Sys.Date()`  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = F, message = F)
+```
+
+
+```{r}
+library(readr)
+library(dplyr)
+library(lme4)
+library(car)
+library(ggplot2)
+
+set.seed(123)
+nsim <- 100
+
+df <- read_csv("MicroglialMorphology.csv")
+#View(df)
+df <- na.omit(df)
+df$agemonth <- factor(df$agemonth)
+df$strain <- factor(df$strain, levels = c("wt", "tg"))
+
+xtabs(~agemonth + strain, df)
+xtabs(~plaque + strain + agemonth, df)
+xtabs(~location + strain, df)
+```
+
+### Statistical Analysis
+
+To account for clustering at animal level, mixed effects logistic regression was used to model the proportion of cells with each morphology per section. Type III Wald chi-square tests were used to determine statistical significance at $\alpha = .05$. All statistical analysis was computed using the R statistical language (R Core Team, 2016; v3.3.1).
+
+References:
+R Core Team (2016). R: A language and environment for statistical computing. R Foundation for Statistical
+  Computing, Vienna, Austria. URL https://www.R-project.org/
+
+Hypothesis 1:  increased dystrophic / degenerating microglia (hyper-ramified and amoeboid morphologies) associated with AD disease progression.
+
+
+```{r}
+df0 <- filter(df, strain == "tg")
+m1 <- glmer(cbind(ramified, totalcells) ~ agemonth + (1|animal),
+                data = df0, family = "binomial")
+Anova(m1, type = 3)
+aggregate(ramified/totalcells ~ agemonth, df0, mean)
+
+ggplot(df0, aes(x = agemonth, y = ramified/totalcells*100, colour = location)) +
+  geom_dotplot(binaxis='y', stackdir='center',
+                position = "dodge",
+               aes(fill = location),
+               dotsize = 3/5, alpha = 3/5) +
+   theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")) +
+labs(y = "% Ramified / section", x = "Age (months)")
+```
+
+
+
+```{r}
+m2 <- glmer(cbind(hyperamified, totalcells) ~ agemonth + (1|animal),
+                data = df0, family = "binomial")
+Anova(m2, type = 3)
+aggregate(hyperamified/totalcells ~ agemonth, df0, mean)
+
+ggplot(df0, aes(x = agemonth, y = hyperamified/totalcells*100, colour = location)) +
+  geom_dotplot(binaxis='y', stackdir='center',
+                position = "dodge",
+               aes(fill = location),
+               dotsize = 3/5, alpha = 3/5) +
+   theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")) +
+labs(y = "% Hyperamified / section", x = "Age (months)")
+```
+
+```{r}
+# m2.fe <- glm(cbind(hyperamified, totalcells) ~ location + agemonth,
+#                 data = df0, family = "binomial")
+# df.hr <- df0 
+# l.hat <- predict(m2.fe, df.hr, se.fit = T)
+# c.lwr <- c(l.hat$fit-1.96*l.hat$se.fit)
+# c.upr <- c(l.hat$fit+1.96*l.hat$se.fit)
+# df.hr$lwr <- exp(c.lwr)/(1+exp(c.lwr))
+# df.hr$upr <- exp(c.upr)/(1+exp(c.upr))
+# df.hr$phyperamified <- df.hr$hyperamified/df.hr$totalcells
+# 
+# 
+# 
+# ggplot(df.hr, aes(x = agemonth, y = phyperamified, colour = location)) +
+#   geom_dotplot(binaxis='y', stackdir='center',
+#                 position = "dodge",
+#                aes(fill = location),
+#                dotsize = 3/5, alpha = 1/2) +
+#   geom_errorbar(position = "dodge",
+#                   aes(ymax=upr, ymin=lwr), width=.5) + 
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_blank(), 
+#         axis.line = element_line(colour = "black")) 
+
+
+
+
+
+
+
+
+
+
+m3 <- glmer(cbind(amoeboid, totalcells) ~ agemonth + (1|animal),
+                data = df0, family = "binomial")
+Anova(m3, type = 3)
+aggregate(amoeboid/totalcells ~ agemonth, df0, mean)
+
+ggplot(df0, aes(x = agemonth, y = amoeboid/totalcells*100, colour = location)) +
+  geom_dotplot(binaxis='y', stackdir='center',
+                position = "dodge",
+               aes(fill = location),
+               dotsize = 3/5, alpha = 3/5) +
+   theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")) +
+labs(y = "% Amoeboid / section", x = "Age (months)")
+
+```
+
+Hypothesis 2:  increase in dystrophic microglia in aging WT samples but to a lesser extent than the AD model.
+
+```{r}
+df0 <- df
+m1 <- glmer(cbind(ramified, totalcells) ~ agemonth*strain + (1|animal),
+                data = df0, family = "binomial")
+Anova(m1, type = 3)
+aggregate(ramified/totalcells ~ agemonth*strain, df0, mean)
+aggregate(ramified/totalcells ~ agemonth, df0, mean)
+aggregate(ramified/totalcells ~ strain, df0, mean)
+
+
+
+ggplot(df0, aes(x = agemonth, y = ramified/totalcells*100, colour = strain)) +
+  geom_dotplot(binaxis='y', stackdir='center',
+                position = "dodge",
+               aes(fill = strain),
+               dotsize = 3/5, alpha = 3/5) +
+   theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")) +
+labs(y = "% Ramified / section", x = "Age (months)")
+```
+
+
+```{r}
+m2 <- glmer(cbind(hyperamified, totalcells) ~ agemonth*strain + (1|animal),
+                data = df0, family = "binomial")
+Anova(m2, type = 3)
+aggregate(hyperamified/totalcells ~ agemonth*strain, df0, mean)
+aggregate(hyperamified/totalcells ~ agemonth, df0, mean)
+aggregate(hyperamified/totalcells ~ strain, df0, mean)
+
+ggplot(df0, aes(x = agemonth, y = hyperamified/totalcells*100, colour = strain)) +
+  geom_dotplot(binaxis='y', stackdir='center',
+                position = "dodge",
+               aes(fill = strain),
+               dotsize = 3/5, alpha = 3/5) +
+   theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")) +
+labs(y = "% Hyperamified / section", x = "Age (months)")
+
+
+
+m3 <- glmer(cbind(amoeboid, totalcells) ~ agemonth*strain + (1|animal),
+                data = df0, family = "binomial")
+Anova(m3, type = 3)
+m4 <- glmer(cbind(amoeboid, totalcells) ~ agemonth + strain + (1|animal),
+            data = df0, family = "binomial")
+anova(m3, m4)
+```
+
+
+A likelihood-ratio test did not support inclusion of the interaction $(\chi^2_2 = 2.73, p = .26)$, so a test of the main effects was conducted. This showed a significant main effect of age $(\chi^2_2 = 17.5, p < .001)$ and strain $(\chi^2_1 = 19.9, p < .001)$, with the proportion of amoeboid cells per section increasing from 0.5% at 3 months to 3.9% at 6 months, and 10.7% at 12 months. Amoeboid cells made up 9.6% of cells in sections from tg mice, but only .5% of cells in sections from wt mice.
+
+
+```{r}
+Anova(m4)
+aggregate(amoeboid/totalcells ~ agemonth, df0, mean)
+aggregate(amoeboid/totalcells ~ strain, df0, mean)
+aggregate(amoeboid/totalcells ~ agemonth + strain, df0, mean)
+
+
+ggplot(df0, aes(x = agemonth, y = amoeboid/totalcells*100, colour = strain)) +
+  geom_dotplot(binaxis='y', stackdir='center',
+                position = "dodge",
+               aes(fill = strain),
+               dotsize = 3/5, alpha = 3/5) +
+   theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black")) +
+labs(y = "% Amoeboid / section", x = "Age (months)")
+
+```
+
+Hypothesis 3:  higher proportion of dystrophic microglia surrounding plaques
+
+```{r}
+df0 <- filter(df, strain == "tg")
+m1 <- glmer(cbind(ramified, totalcells) ~ location + (1|animal),
+                data = df, family = "binomial")
+Anova(m1, type = 3)
+aggregate(ramified/totalcells ~ location, df0, mean)
+
+m2 <- glmer(cbind(hyperamified, totalcells) ~ location + (1|animal),
+                data = df, family = "binomial")
+Anova(m2, type = 3)
+aggregate(hyperamified/totalcells ~ location, df0, mean)
+
+m3 <- glmer(cbind(amoeboid, totalcells) ~ location + (1|animal),
+                data = df, family = "binomial")
+Anova(m3, type = 3)
+aggregate(amoeboid/totalcells ~ location, df0, mean)
+
+```
+
+
+
+

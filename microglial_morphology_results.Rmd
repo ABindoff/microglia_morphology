@@ -1,7 +1,9 @@
 ---
 title: "Results"
 author: "Holloway, O., Bindoff, A., Ziebell, J."
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 `r Sys.Date()`  
@@ -39,6 +41,9 @@ To account for clustering at animal level, mixed effects logistic regression was
 References:
 R Core Team (2016). R: A language and environment for statistical computing. R Foundation for Statistical
   Computing, Vienna, Austria. URL https://www.R-project.org/
+
+
+### Results
 
 Hypothesis 1:  increased dystrophic / degenerating microglia (hyper-ramified and amoeboid morphologies) associated with AD disease progression.
 
@@ -191,6 +196,8 @@ anova(m3, m4)
 
 
 A likelihood-ratio test did not support inclusion of the interaction $(\chi^2_2 = 2.73, p = .26)$, so a test of the main effects was conducted. This showed a significant main effect of age $(\chi^2_2 = 17.5, p < .001)$ and strain $(\chi^2_1 = 19.9, p < .001)$, with the proportion of amoeboid cells per section increasing from 0.5% at 3 months to 3.9% at 6 months, and 10.7% at 12 months. Amoeboid cells made up 9.6% of cells in sections from tg mice, but only .5% of cells in sections from wt mice.
+
+*(Liv - use the above example as a template for reporting your results)*
 
 
 ```{r}
